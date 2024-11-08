@@ -31,7 +31,8 @@ end
 
 for iter in 1:5
     start_time = time_ns()
-    
+   
+
   #  Dagger.with_options(;scope) do
         @time fft(a, b, c, (FFT(), FFT(), FFT()), (1, 2, 3), decomp = Pencil())
    # end

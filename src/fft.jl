@@ -70,19 +70,6 @@ end
     end
 end
 
-# Get the number of processors
-@everywhere const W = Distributed.nprocs() - 1
-@everywhere function find_factors(N)
-    n = Int(floor(sqrt(N)))
-    while N % n != 0
-        n -= 1
-    end
-    m = N ÷ n
-    return n, m
-end
-
-@everywhere const n, m = find_factors(W)
-
 @everywhere function plan_transform(transform, A, dims; kwargs...)
         if transform isa FFT
             return plan_fft(A, dims; kwargs...)
