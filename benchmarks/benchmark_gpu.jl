@@ -2,29 +2,47 @@ __precompile__(false)
 using Distributed
 using Base: time_ns
 
-@everywhere begin
-    using Dagger
-    using LinearAlgebra
-    using FFTW
-    using Random
-    using CUDA
-    using DaggerGPU
+if nprocs() < 5
+    addprocs(4)
 end
+
+@everywhere using Pkg
+@everywhere Pkg.instantiate()
+
+#@everywhere Pkg.add("Dagger")
+#@everywhere Pkg.add("FFTW")
+#@everywhere Pkg.add("KernelAbstractions")
+#@everywhere Pkg.add("AbstractFFTs")
+#@everywhere Pkg.add("CUDA")
+#@everywhere Pkg.add("GPUArrays")
+@everywhere using Dagger
+@everywhere using LinearAlgebra
+@everywhere using FFTW
+@everywhere using Random
+@everywhere using DaggerGPU, GPUArrays, KernelAbstractions, AbstractFFTs
+
+
 
 
 include("../src/fft.jl")
 @everywhere include("../src/fft.jl")
 
 
-num_gpus = length(CUDA.devices())
+#num_gpus = length(CUDA.devices())
 
-scope = Dagger.scope(cuda_gpus=1:4)
+GPUArray = CuArray
+scope = Dagger.scope(;cuda_gpu=1)
 
-A = rand(ComplexF64, 1024, 1024, 1024)
-a = distribute(A, Blocks(1024, 1024, 256))
-b = distribute(A, Blocks(512, 512, 1024))
-#c = distribute(A, Blocks(256, 256, 512))
-
+if myid() == 1 
+    A = rand(ComplexF64, 128, 128, 128)
+    a = distribute(A, Blocks(128, 128, 32))
+    b = distribute(A, Blocks(64, 64, 128))
+ #   c = distribute(A, Blocks(64, 64, 128))
+else
+    a = distribute(nothing, Blocks(128, 128, 32))
+    b = distribute(nothing, Blocks(64, 64, 128))
+ #   c = distribute(nothing, Blocks(64, 64, 128))
+end
 
 
 for iter in 1:5
