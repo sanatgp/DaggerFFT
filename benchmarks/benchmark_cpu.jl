@@ -22,14 +22,14 @@ end
 
 
 if myid() == 1 
-    A = rand(ComplexF64, 128, 128, 128)
-    a = create_darray(A, Blocks(128, 128, 32))
-    b = create_darray(A, Blocks(64, 64, 128))
-#    c = distribute(A, Blocks(160, 80, 1280))
+    A = rand(ComplexF64, 512, 512, 512)
+    a = distribute(A, Blocks(512, 256, 256))
+    b = distribute(A, Blocks(256, 512, 256))
+    c = distribute(A, Blocks(256, 256, 512))
 else
-    a = create_darray(nothing, Blocks(128, 128, 32))
-    b = create_darray(nothing, Blocks(64, 64, 128))
-#    c = distribute(nothing, Blocks(160, 80, 1280))
+    a = distribute(nothing, Blocks(512, 256, 256))
+    b = distribute(nothing, Blocks(256, 512, 256))
+    c = distribute(nothing, Blocks(256, 256, 512))
 end
 
 
@@ -77,7 +77,7 @@ function benchmark_fft(iters=10)
         forward_start = time_ns()
   #      Dagger.with_options(;scope) do
         @time begin
-            result_b = fft(a, b, (FFT(), FFT(), FFT()), (1, 2, 3), decomp = Slab())
+            result_b = fft(a, b, c, (FFT(), FFT(), FFT()), (1, 2, 3), decomp = Pencil())
         end
    #     end
         forward_time = (time_ns() - forward_start) / 1e9
@@ -86,7 +86,7 @@ function benchmark_fft(iters=10)
         backward_start = time_ns()
    #     Dagger.with_options(;scope) do
         @time begin
-            result_c = ifft(b, a, (IFFT(), IFFT(), IFFT()), (1, 2, 3), decomp = Slab())
+            result_c = ifft(c, b, a, (IFFT(), IFFT(), IFFT()), (1, 2, 3), decomp = Pencil())
    #     end
         end
         backward_time = (time_ns() - backward_start) / 1e9

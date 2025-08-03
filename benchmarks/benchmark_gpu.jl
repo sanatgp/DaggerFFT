@@ -2,9 +2,9 @@ __precompile__(false)
 using Distributed
 using Base: time_ns
 
-if nprocs() < 5
-    addprocs(4)
-end
+#if nprocs() < 5
+#    addprocs(4)
+#end
 
 @everywhere using Pkg
 @everywhere Pkg.instantiate()
@@ -34,18 +34,18 @@ GPUArray = CuArray
 scope = Dagger.scope(;cuda_gpu=1)
 
 if myid() == 1 
-    A = rand(ComplexF64, 128, 128, 128)
-    a = distribute(A, Blocks(128, 128, 32))
-    b = distribute(A, Blocks(64, 64, 128))
+    A = rand(ComplexF64, 256, 256, 256)
+    a = distribute(A, Blocks(256, 256, 64))
+    b = distribute(A, Blocks(128, 128, 256))
  #   c = distribute(A, Blocks(64, 64, 128))
 else
-    a = distribute(nothing, Blocks(128, 128, 32))
-    b = distribute(nothing, Blocks(64, 64, 128))
+    a = distribute(nothing, Blocks(256, 256, 64))
+    b = distribute(nothing, Blocks(128, 128, 256))
  #   c = distribute(nothing, Blocks(64, 64, 128))
 end
 
 
-for iter in 1:5
+for iter in 1:10
     start_time = time_ns()
     
     Dagger.with_options(;scope) do
